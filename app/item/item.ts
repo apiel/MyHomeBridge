@@ -1,5 +1,10 @@
 
 export class ItemStatus {
+    id: string;
+    status: string | number;
+}
+
+export class ItemAvailableStatus {
     type: string;
     value: string;
 }
@@ -11,5 +16,5 @@ export class Item {
   statusUrl: string;
   type: string;
   url: string;
-  availableStatus: any; // <ItemStatus>
+  availableStatus: { [name: string]: ItemAvailableStatus };
 }

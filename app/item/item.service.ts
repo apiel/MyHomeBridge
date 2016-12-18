@@ -3,11 +3,11 @@ require('es6-promise').polyfill(); // find a solution to get rid of that
 
 import * as request from 'request-promise';
 import { exec } from 'child_process';
-import ItemModel from './item.model';
-import { Item, ItemStatus } from './item';
+import Model from './../lib/model.helper';
+import { Item, ItemAvailableStatus, ItemStatus } from './item';
 
 export default class {
-    constructor(private itemModel: ItemModel) {}
+    constructor(private itemModel: Model<Item>) {}
         
     toggle(availableStatus: string[], status: string): string {
         for(let val of availableStatus) {
@@ -44,7 +44,7 @@ export default class {
             request(item.url.replace(':value', item.status));            
         }
         else if (item.availableStatus) {
-            let itemStatus: ItemStatus = item.availableStatus[item.status];
+            let itemStatus: ItemAvailableStatus = item.availableStatus[item.status];
             if (itemStatus.type === 'url') {
                 request(itemStatus.value);
             }
@@ -83,7 +83,7 @@ export default class {
     }
     
     async getStatus(id: string) {
-        let response: { id: string, status: string | number };
+        let response: ItemStatus;
         let item: Item = this.itemModel.get(id); 
         if (item.statusUrl) {
             response = await this.getStatusFromUrl(id, item.statusUrl);
