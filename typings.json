@@ -1,0 +1,13 @@
+{
+  "globalDependencies": {
+    "bunyan": "registry:dt/bunyan#0.0.0+20160412155112",
+    "node": "registry:dt/node#6.0.0+20160807145350",
+    "request-promise": "registry:dt/request-promise#4.1.0+20161119044246",
+    "restify": "registry:dt/restify#2.0.0+20160726153409",
+    "rx": "npm:rx/ts/rx.all.d.ts"
+  },
+  "dependencies": {
+    "bluebird": "registry:npm/bluebird#3.4.1+20160909132857",
+    "request": "registry:npm/request#2.69.0+20160428223725"
+  }
+}
