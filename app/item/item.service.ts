@@ -26,6 +26,7 @@ export default class {
     }    
 
     setStatus(id: string, status: string): Item { // we could make it async to have the same behavior as other
+        console.log('SetStatus: ' + id + ' to ' + status);
         let item: Item = this.itemModel.get(id);
         
         if (item.type === "number") {
@@ -46,9 +47,11 @@ export default class {
         else if (item.availableStatus) {
             let itemStatus: ItemAvailableStatus = item.availableStatus[item.status];
             if (itemStatus.type === 'url') {
+                console.log('Call url: ' + itemStatus.value);
                 request(itemStatus.value);
             }
             else if (itemStatus.type === 'exec') {
+                console.log('Exec: ' + itemStatus.value);
                 exec(itemStatus.value);
             }
         }        
