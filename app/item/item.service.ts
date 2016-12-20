@@ -2,7 +2,9 @@ import "babel-polyfill"; // find a solution to get rid of that
 require('es6-promise').polyfill(); // find a solution to get rid of that
 
 import * as request from 'request-promise';
-import { exec } from 'child_process';
+//import { exec } from 'child_process';
+//import { exec } from 'child-process-promise';
+var exec = require('child-process-promise').exec;
 import Model from './../lib/model.helper';
 import { Item, ItemAvailableStatus, ItemStatus } from './item';
 
@@ -25,10 +27,9 @@ export default class {
         return status;
     }    
 
-    setStatus(id: string, status: string): Item { // we could make it async to have the same behavior as other
+    setStatus(id: string, status: string): ItemStatus { // we could make it async to have the same behavior as other
         console.log('SetStatus: ' + id + ' to ' + status);
-        let item: Item = this.itemModel.get(id);
-        
+        let item: Item = this.itemModel.get(id);         
         if (item.type === "number") {
             this.setStatusOfTypeNumber(item, status);
         }
@@ -37,8 +38,19 @@ export default class {
         }
         this.itemModel.save();
         this.setStatusAction(item);    
-        return item;
+        return {id: id, status: item.status};
     }  
+    
+    execQueue: string[] = [];
+    async consumeExecQueue(command: string) {
+        this.execQueue.push(command);
+        if (this.execQueue.length === 1) {
+            while(this.execQueue.length) {
+                await exec(this.execQueue.slice(0, 1));
+                this.execQueue.shift();
+            }
+        }     
+    }
     
     setStatusAction(item: Item) {
         if (item.url) {
@@ -46,17 +58,19 @@ export default class {
         }
         else if (item.availableStatus) {
             let itemStatus: ItemAvailableStatus = item.availableStatus[item.status];
+            console.log(itemStatus.type + ': ' + itemStatus.value);
             if (itemStatus.type === 'url') {
-                console.log('Call url: ' + itemStatus.value);
                 request(itemStatus.value);
             }
             else if (itemStatus.type === 'exec') {
-                console.log('Exec: ' + itemStatus.value);
                 exec(itemStatus.value);
+            }
+            else if (itemStatus.type === 'exec_sync') {
+                this.consumeExecQueue(itemStatus.value);
             }
         }        
     }  
-        
+            
     setStatusOfTypeNumber(item: Item, status: string): void {
         if (isNaN(Number(status))) {
             throw "Status is not a number.";

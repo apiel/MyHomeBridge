@@ -21,9 +21,8 @@ export default class {
         console.log('Controller item setStatus');
         let id = req.params['id'];
         let status = req.params['status'];
-        try {
-            let item: Item = this.itemService.setStatus(id, status);            
-            res.json(200, {status: item.status});
+        try {    
+            res.json(200, this.itemService.setStatus(id, status));
         }
         catch(e) {
             res.json(200, {error: e});
