@@ -1,7 +1,8 @@
 
 export class ItemStatus {
     id: string;
-    status: string | number;
+    status?: string | number;
+    error?: any;
 }
 
 export class ItemAvailableStatus {

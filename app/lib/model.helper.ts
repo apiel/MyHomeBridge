@@ -1,27 +1,21 @@
 import fs = require('fs');
 import path = require('path');
 
-export default class <T> {
+export class Model <T> {
     filePath: string;
-    data: T[];
+    data: T;
     
     constructor(filePath: string) {
         this.filePath = path.dirname(require.main.filename) + filePath;
-        this.load();
     }
     
-    all(): T[] {
+    get(): T {
+        if (typeof this.data === 'undefined') {
+            this.load();
+        }
         return this.data;
-    }
-    
-    get(id: string): T {
-        let item: T = this.data[<any>id];
-         if (!item) {
-            throw "Unknown item key";
-        }        
-        return item;
-    }
-    
+    }    
+        
     load() {
         console.log("Load model.");
         if (fs.existsSync(this.filePath)) {
@@ -36,4 +30,14 @@ export default class <T> {
         console.log("Save model.");
         fs.writeFileSync(this.filePath, JSON.stringify(this.data, null, 4), 'utf8');
     }
+}
+
+export class ModelObject <T> extends Model <T[]> {
+    getById(id: string): T {
+        let item: T = this.get()[<any>id];
+        if (typeof item === 'undefined') {
+            throw "Unknown item key";
+        }        
+        return item;
+    }    
 }

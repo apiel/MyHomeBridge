@@ -30,6 +30,7 @@ export default class {
         return next();
     } 
     
+    // we should handle error by request if one or the service is not running
     all(req: restify.Request, res: restify.Response, next: restify.Next) {
         console.log('Controller item all');
         this.itemService.all()

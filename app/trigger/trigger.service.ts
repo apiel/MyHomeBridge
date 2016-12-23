@@ -1,10 +1,10 @@
 import * as request from 'request';
-import Model from './../lib/model.helper';
+import { ModelObject } from './../lib/model.helper';
 import { Trigger } from './trigger';
 import { ItemStatus } from './../item/item';
 
 export default class {
-    constructor(private triggerModel: Model<Trigger>) {}
+    constructor(private triggerModel: ModelObject<Trigger>) {}
     
     parseItemsStatus(itemsStatus: ItemStatus[]): void {
         let _itemsStatus: any = {};
@@ -12,7 +12,7 @@ export default class {
             _itemsStatus[itemStatus.id] = itemStatus.status;
         }
         
-        for (let trigger of this.triggerModel.all()) {
+        for (let trigger of this.triggerModel.get()) {
             let isTrue = false;
             for (let condition of trigger.trigger) {
                 let itemStatus = _itemsStatus[condition.item];

@@ -5,11 +5,11 @@ import * as request from 'request-promise';
 //import { exec } from 'child_process';
 //import { exec } from 'child-process-promise';
 var exec = require('child-process-promise').exec;
-import Model from './../lib/model.helper';
+import { ModelObject } from './../lib/model.helper';
 import { Item, ItemAvailableStatus, ItemStatus } from './item';
 
 export default class {
-    constructor(private itemModel: Model<Item>) {}
+    constructor(private itemModel: ModelObject<Item>) {}
         
     toggle(availableStatus: string[], status: string): string {
         for(let val of availableStatus) {
@@ -29,7 +29,7 @@ export default class {
 
     setStatus(id: string, status: string): ItemStatus { // we could make it async to have the same behavior as other
         console.log('SetStatus: ' + id + ' to ' + status);
-        let item: Item = this.itemModel.get(id);         
+        let item: Item = this.itemModel.getById(id);         
         if (item.type === "number") {
             this.setStatusOfTypeNumber(item, status);
         }
@@ -94,14 +94,14 @@ export default class {
     }
     
     all() {
-        let items: Item[] = this.itemModel.all();
+        let items: Item[] = this.itemModel.get();
         let itemsKeys = Object.keys(items);
         return Promise.all(itemsKeys.map(key => this.getStatus(key)));
     }
     
     async getStatus(id: string) {
         let response: ItemStatus;
-        let item: Item = this.itemModel.get(id); 
+        let item: Item = this.itemModel.getById(id); 
         if (item.statusUrl) {
             response = await this.getStatusFromUrl(id, item.statusUrl);
         }
@@ -112,12 +112,18 @@ export default class {
         return response;
     }
     
+    // here we should manage error by request
     async getStatusFromUrl(id: string, url: string) {
-        let body = await request(url);
-        var data: { status: string } = JSON.parse(body); 
-        if (!data || !data.status) 
-            throw {id: id, error: body};
+        try {
+            let body = await request(url);
+            var data: { status: string } = JSON.parse(body); 
+            if (!data || !data.status) 
+                return <ItemStatus> {id: id, error: body};            
+        }
+        catch (error) {
+            return <ItemStatus> {id: id, error: error};   
+        }
             
-        return {id: id, status: data.status};
+        return <ItemStatus> {id: id, status: data.status};
     }
 }
