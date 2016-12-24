@@ -1,5 +1,6 @@
 import { ItemStatus } from './../item/item';
 
-export class Timer extends ItemStatus {
-  time: number;
+export class Timer {
+    itemStatus: ItemStatus;
+    time: number;
 }

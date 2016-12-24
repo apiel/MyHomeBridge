@@ -3,7 +3,7 @@ import restify = require('restify');
 import ItemController from './item/item.controller';
 import ItemService from './item/item.service';
 import { Item, ItemStatus } from './item/item';
-import { ModelObject } from './lib/model.helper';
+import { Model, ModelObject } from './lib/model.helper';
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
 
@@ -22,7 +22,7 @@ server.get('/items', itemController.all.bind(itemController));
 import TriggerController from './trigger/trigger.controller';
 import TriggerService  from './trigger/trigger.service';
 import { Trigger } from './trigger/trigger';
-let triggerModel = new ModelObject<Trigger>("/../data/trigger.json");
+let triggerModel = new ModelObject<Trigger>("/../data/triggers.json");
 let triggerService = new TriggerService(triggerModel);
 let triggerController = new TriggerController(triggerService);
 server.post('/trigger/push', triggerController.push.bind(triggerController));
@@ -36,6 +36,14 @@ let actionModel = new ModelObject<ItemStatus[]>("/../data/actions.json");
 let actionService = new ActionService(actionModel, itemService);
 let actionController = new ActionController(actionService);
 server.get('/action/:name', actionController.call.bind(actionController));
+
+
+
+import { Timer } from './timer/timer';
+import TimerService from './timer/timer.service';
+let timerModel = new Model<Timer[]>("/../data/timers.json");
+let timerService = new TimerService(timerModel, itemService);
+timerService.init();
 
 
 server.listen(3030, function() {

@@ -14,6 +14,11 @@ export class Model <T> {
             this.load();
         }
         return this.data;
+    }
+    
+    set(data: T) {
+        this.data = data;
+        return this;
     }    
         
     load() {
@@ -23,12 +28,14 @@ export class Model <T> {
         }
         else {
             throw 'Path to data model folder does not exist: ' + this.filePath;
-        }        
+        } 
+        return this;       
     }
     
     save() {
         console.log("Save model.");
         fs.writeFileSync(this.filePath, JSON.stringify(this.data, null, 4), 'utf8');
+        return this;
     }
 }
 

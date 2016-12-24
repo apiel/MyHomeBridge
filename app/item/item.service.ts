@@ -27,7 +27,9 @@ export default class {
         return status;
     }    
 
-    setStatus(id: string, status: string): ItemStatus { // we could make it async to have the same behavior as other
+    // we could make it async to have the same behavior as others
+    // could be setStatus(itemStatus: ItemStatus)
+    setStatus(id: string, status: string): ItemStatus { 
         console.log('SetStatus: ' + id + ' to ' + status);
         let item: Item = this.itemModel.getById(id);         
         if (item.type === "number") {
