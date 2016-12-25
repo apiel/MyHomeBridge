@@ -10,7 +10,7 @@ export default class {
         this.clean();
         let now: number = new Date().getTime();
         this.timerModel.get().map((timer: Timer) => {
-            this.setTimeout(timer.itemStatus, now - timer.time);
+            this.setTimeout(timer.itemStatus, timer.time - now);
         });
     }
     
@@ -36,7 +36,7 @@ export default class {
     
     clean(): void {
         let now: number = new Date().getTime();
-        let timers: Timer[] = this.timerModel.get().filter((timer: Timer) => { return timer.time < now; } );
+        let timers: Timer[] = this.timerModel.get().filter((timer: Timer) => { return timer.time > now; } );
         this.timerModel.set(timers).save();
     }
 }

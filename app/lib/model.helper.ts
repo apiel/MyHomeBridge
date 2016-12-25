@@ -16,12 +16,12 @@ export class Model <T> {
         return this.data;
     }
     
-    set(data: T) {
+    set(data: T): Model<T> {
         this.data = data;
         return this;
     }    
         
-    load() {
+    load(): Model<T> {
         console.log("Load model.");
         if (fs.existsSync(this.filePath)) {
             this.data = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
@@ -32,7 +32,7 @@ export class Model <T> {
         return this;       
     }
     
-    save() {
+    save(): Model<T> {
         console.log("Save model.");
         fs.writeFileSync(this.filePath, JSON.stringify(this.data, null, 4), 'utf8');
         return this;

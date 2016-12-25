@@ -29,21 +29,20 @@ server.post('/trigger/push', triggerController.push.bind(triggerController));
 
 
 
-
-import ActionController from './action/action.controller';
-import ActionService  from './action/action.service';
-let actionModel = new ModelObject<ItemStatus[]>("/../data/actions.json");
-let actionService = new ActionService(actionModel, itemService);
-let actionController = new ActionController(actionService);
-server.get('/action/:name', actionController.call.bind(actionController));
-
-
-
 import { Timer } from './timer/timer';
 import TimerService from './timer/timer.service';
 let timerModel = new Model<Timer[]>("/../data/timers.json");
 let timerService = new TimerService(timerModel, itemService);
 timerService.init();
+
+
+import ActionController from './action/action.controller';
+import ActionService  from './action/action.service';
+import { Action } from './action/action';
+let actionModel = new ModelObject<Action[]>("/../data/actions.json");
+let actionService = new ActionService(actionModel, itemService, timerService);
+let actionController = new ActionController(actionService);
+server.get('/action/:name', actionController.call.bind(actionController));
 
 
 server.listen(3030, function() {
