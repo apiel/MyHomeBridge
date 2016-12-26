@@ -8,16 +8,19 @@ export default class {
                 private itemService: ItemService,
                 private timerService: TimerService) {}
     
-    call(name: string) {
+    call(name: string, timer: number = 0) {
         let actions: Action[] = this.actionModel.getById(name);
         return actions.map(action => {
             if (action.type === 'item') {
-                if (action.timer > 0) {
-                    this.timerService.add(action.value, action.timer);
+                if (action.timer + timer > 0) {
+                    this.timerService.add(action.itemStatus, action.timer + timer);
                 }
                 else {
-                    return this.itemService.setStatus(action.value.id, action.value.status.toString());                    
+                    return this.itemService.setStatus(action.itemStatus.id, action.itemStatus.status.toString());                    
                 }
+            }
+            else if (action.type === 'action') {
+                this.call(action.actionName, action.timer);
             }
         });
     }

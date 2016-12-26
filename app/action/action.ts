@@ -4,6 +4,7 @@ type ActionType = "item" | "action";
 
 export class Action {
     type: ActionType;
-    value: ItemStatus;
+    itemStatus?: ItemStatus;
+    actionName?: string;
     timer: number;
 }
