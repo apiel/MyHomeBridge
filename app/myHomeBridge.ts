@@ -45,6 +45,13 @@ let actionController = new ActionController(actionService);
 server.get('/action/:name', actionController.call.bind(actionController));
 
 
+import AlexaController from './alexa/alexa.controller';
+import AlexaService  from './alexa/alexa.service';
+let alexaService = new AlexaService();
+let alexaController = new AlexaController(alexaService);
+server.post('/alexa', alexaController.call.bind(alexaController));
+
+
 server.listen(3030, function() {
   console.log('%s listening at %s', server.name, server.url);
 });

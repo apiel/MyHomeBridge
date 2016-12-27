@@ -3,6 +3,7 @@ import { Timer } from './timer';
 import { ItemStatus } from './../item/item';
 import ItemService from './../item/item.service';
 
+// We should be able to give an ID to a timer, in order to extend it or cancel it
 export default class {
     constructor(private timerModel: Model<Timer[]>, private itemService: ItemService) {}
 

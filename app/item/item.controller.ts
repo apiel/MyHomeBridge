@@ -25,7 +25,7 @@ export default class {
             res.json(200, this.itemService.setStatus(id, status));
         }
         catch(e) {
-            res.json(200, {error: e});
+            res.json(400, {error: e});
         }
         return next();
     } 

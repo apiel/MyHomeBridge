@@ -1,14 +1,14 @@
 import restify = require('restify');
-import ActionService  from './action.service';
+import AlexaService  from './alexa.service';
 
 export default class {
-    constructor(private actionService: ActionService) {}
+    constructor(private alexaService: AlexaService) {}
     
     call(req: restify.Request, res: restify.Response, next: restify.Next) {
-        let name: string = req.params.name;
+        console.log(JSON.stringify(req ,null, 4));
         try {
-            let status = this.actionService.call(name);
-            res.json(200, status);
+            let response = this.alexaService.call();
+            res.json(200, response);
         }
         catch(e) {
             res.json(400, {error: e});

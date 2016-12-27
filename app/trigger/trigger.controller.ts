@@ -5,20 +5,15 @@ import { ItemStatus } from './../item/item';
 export default class {
     constructor(private triggerService: TriggerService) {}
     
+    // this should go away and the push function should just extend the setItemStatus or...
     push(req: restify.Request, res: restify.Response, next: restify.Next) {
-        //console.log(req.body.status);
-        let itemsStatus: ItemStatus[] = JSON.parse(req.params.status);
-        this.triggerService.parseItemsStatus(itemsStatus);
-        //console.log(req.params);
-        //console.log(req);
-        //let id = req.params['id'];
         try {
-            //let _switch: Switch = this.switchService.get(id);            
+            let itemsStatus: ItemStatus[] = JSON.parse(req.params.status);
+            this.triggerService.parseItemsStatus(itemsStatus);
             res.json(200, {ok: true});
-            //res.json(200, req);
         }
         catch(e) {
-            res.json(200, {error: e});
+            res.json(400, {error: e});
         }
         return next();
     }  
