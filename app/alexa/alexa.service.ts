@@ -1,8 +1,11 @@
+// AMAZON.DURATION for timer
+
 export default class {
     constructor() {}
     
-    call() {
-       return this.response('my home bridge response');
+    call(body: any) {
+        console.log(body);
+        return this.response('my home bridge response');
     }
 
     response(text: string) {

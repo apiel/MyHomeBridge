@@ -8,6 +8,7 @@ import { Model, ModelObject } from './lib/model.helper';
 restify.CORS.ALLOW_HEADERS.push('authorization');
 
 var server = restify.createServer();
+server.use(restify.bodyParser({ mapParams: false }));
 server.use(restify.CORS());
 
 let itemModel = new ModelObject<Item>("/../data/items.json");
