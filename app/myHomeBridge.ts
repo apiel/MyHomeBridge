@@ -48,7 +48,8 @@ server.get('/action/:name', actionController.call.bind(actionController));
 
 import AlexaController from './alexa/alexa.controller';
 import AlexaService  from './alexa/alexa.service';
-let alexaService = new AlexaService();
+let alexaModel = new ModelObject<Action>("/../data/alexa.json");
+let alexaService = new AlexaService(alexaModel, actionService);
 let alexaController = new AlexaController(alexaService);
 server.post('/alexa', alexaController.call.bind(alexaController));
 

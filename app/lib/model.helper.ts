@@ -46,5 +46,10 @@ export class ModelObject <T> extends Model <T[]> {
             throw "Unknown item key";
         }        
         return item;
-    }    
+    }  
+    
+    add(id: string, object: T): ModelObject <T> {
+        this.get()[<any>id] = object;
+        return this;
+    }  
 }

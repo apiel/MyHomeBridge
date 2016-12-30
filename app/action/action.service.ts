@@ -10,18 +10,20 @@ export default class {
     
     call(name: string, timer: number = 0) {
         let actions: Action[] = this.actionModel.getById(name);
-        return actions.map(action => {
-            if (action.type === 'item') {
-                if (action.timer + timer > 0) {
-                    this.timerService.add(action.itemStatus, action.timer + timer);
-                }
-                else {
-                    return this.itemService.setStatus(action.itemStatus.id, action.itemStatus.status.toString());                    
-                }
+        return actions.map(action => this.execute(action, timer));
+    }
+    
+    execute(action: Action, timer: number = 0) {
+        if (action.type === 'item') {
+            if (action.timer + timer > 0) {
+                this.timerService.add(action.itemStatus, action.timer + timer);
             }
-            else if (action.type === 'action') {
-                this.call(action.actionName, action.timer);
+            else {
+                return this.itemService.setStatus(action.itemStatus.id, action.itemStatus.status.toString());                    
             }
-        });
+        }
+        else if (action.type === 'action') {
+            this.call(action.actionName, action.timer);
+        }        
     }
 }
