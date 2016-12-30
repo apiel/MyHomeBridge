@@ -7,9 +7,7 @@ import ActionService  from './../action/action.service';
 export default class {
     constructor(private alexaModel: ModelObject<Action>, private actionService: ActionService) {}
     
-    call(body: any) {
-        console.log(body);
-        
+    call(body: any) {        
         let slots: {[name: string]: {name: string, value: string}} = body.request.intent.slots;
         let key: string = slots['device'].value + '-'
                         + slots['devicebis'].value + '-'
@@ -33,7 +31,7 @@ export default class {
         console.log('Alexa key itemStatus: ' + key);
         console.log(action);      
         
-        return this.response('my home bridge response');
+        return this.response(response);
     }
     
     buildResponseBaseOnAction(action: Action): string {
