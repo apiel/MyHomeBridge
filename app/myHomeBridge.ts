@@ -52,6 +52,7 @@ let alexaModel = new ModelObject<Action>("/../data/alexa.json");
 let alexaService = new AlexaService(alexaModel, actionService);
 let alexaController = new AlexaController(alexaService);
 server.post('/alexa', alexaController.call.bind(alexaController));
+//server.post('/alexa/:key', alexaController.callKey.bind(alexaController));
 
 
 server.listen(3030, function() {

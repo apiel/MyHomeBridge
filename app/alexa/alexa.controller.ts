@@ -18,4 +18,18 @@ export default class {
             return next();
         })
     } 
+    
+//    callKey(req: restify.Request, res: restify.Response, next: restify.Next) {
+//        AlexaHandler(req, res, () => {
+//            let key: string = req.params.key;
+//            try {
+//                let response = this.alexaService.callKey(key);
+//                res.json(200, response);
+//            }
+//            catch(e) {
+//                res.json(400, {error: e});
+//            }
+//            return next();
+//        })
+//    }     
 }
