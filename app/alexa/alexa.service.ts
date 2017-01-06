@@ -4,6 +4,7 @@ import ActionService  from './../action/action.service';
 import moment = require("moment");
 
 // AMAZON.DURATION for timer
+// if action created but not set, con t how many time it has been asked already
 
 export default class {
     constructor(private alexaModel: ModelObject<Action>, private actionService: ActionService) {}
@@ -11,12 +12,16 @@ export default class {
     call(body: any) {        
         console.log(JSON.stringify(body.request.intent.slots, null, 4));
         let slots: {[name: string]: {name: string, value: string}} = body.request.intent.slots;
-        let key: string = slots['device'].value + '-'
-                        + slots['devicebis'].value + '-'
-                        + slots['room'].value + '-'
-                        + slots['status'].value;
-        console.log('Timer: ' + slots['timer'].value);
-        return this.callKey(key, slots['timer'].value);
+        let timer: string = slots['timer'].value;
+        delete slots['timer'];
+        
+        let key: string = Object.keys(slots)
+                                .filter(k => { return slots[k].hasOwnProperty('value'); })
+                                .map(k => { return slots[k].value; })
+                                .join('-');
+        
+        console.log('Alexa call key: ' + key + ' with timer: ' + timer);
+        return this.callKey(key, timer);
     }
     
     callKey(key: string, timer: string = null) {
