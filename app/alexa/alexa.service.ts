@@ -4,7 +4,7 @@ import ActionService  from './../action/action.service';
 import moment = require("moment");
 
 // AMAZON.DURATION for timer
-// if action created but not set, con t how many time it has been asked already
+// we could count how many time an undefined alexa key has been called
 
 export default class {
     constructor(private alexaModel: ModelObject<Action>, private actionService: ActionService) {}
@@ -51,14 +51,14 @@ export default class {
     }
     
     buildResponseBaseOnAction(action: Action, timerSec: number): string {
-        let response: string = 'Execute action.';
+        let response: string = 'Action type is not yet defined';
         if (action.type === 'item') {
             response = 'Set status of ' + action.itemStatus.id + ' to ' + action.itemStatus.status;
         }
         else if (action.type === 'action') {
             response = 'Execute action ' + action.actionName;
         }        
-        return response + (timerSec ? 'in ' + timerSec + ' seconds' : ''); // here we should use moment and convert timer to string
+        return response + (timerSec ? ' in ' + timerSec + ' seconds' : ''); // here we should use moment and convert timer to string
     }
 
     response(text: string) {

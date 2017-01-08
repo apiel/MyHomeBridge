@@ -37,5 +37,15 @@ export default class {
                         .then(data => res.json(200, data))
                         .catch(error => res.json(400, error));
         return next();
-    }     
+    }  
+    
+    definitions(req: restify.Request, res: restify.Response, next: restify.Next) {
+        try {    
+            res.json(200, this.itemService.definitions());
+        }
+        catch(e) {
+            res.json(400, {error: e});
+        }
+        return next();
+    }    
 }

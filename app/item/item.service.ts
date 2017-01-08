@@ -6,7 +6,7 @@ import * as request from 'request-promise';
 //import { exec } from 'child-process-promise';
 var exec = require('child-process-promise').exec;
 import { ModelObject } from './../lib/model.helper';
-import { Item, ItemAvailableStatus, ItemStatus } from './item';
+import { Item, ItemAvailableStatus, ItemStatus, ItemDefinition, ItemBase } from './item';
 
 export default class {
     constructor(private itemModel: ModelObject<Item>) {}
@@ -127,5 +127,20 @@ export default class {
         }
             
         return <ItemStatus> {id: id, status: data.status};
+    }
+    
+    definitions() {
+        let items: Item[] = this.itemModel.get();
+        let defintions: ItemDefinition[] = [];
+        for (let key in items) {
+            let defintion: ItemDefinition = new ItemDefinition;
+            defintion.name = items[key].name;
+            if (typeof(items[key].type) !== 'undefined') 
+                defintion.type = items[key].type;
+            if (typeof(items[key].availableStatus) !== 'undefined')
+                defintion.availableStatus = Object.keys(items[key].availableStatus);
+            defintions.push(defintion);
+        }
+        return defintions;
     }
 }

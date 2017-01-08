@@ -26,4 +26,8 @@ export default class {
             this.call(action.actionName, action.timer);
         }        
     }
+    
+    definitions() {
+        return Object.keys(this.actionModel.get());
+    }
 }

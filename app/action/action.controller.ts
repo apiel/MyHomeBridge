@@ -14,5 +14,16 @@ export default class {
             res.json(400, {error: e});
         }
         return next();
-    }  
+    }
+    
+    definitions(req: restify.Request, res: restify.Response, next: restify.Next) {
+        try {
+            let definitions = this.actionService.definitions();
+            res.json(200, definitions);
+        }
+        catch(e) {
+            res.json(400, {error: e});
+        }
+        return next();
+    }        
 }

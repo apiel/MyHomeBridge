@@ -2,7 +2,7 @@
 import restify = require('restify');
 import ItemController from './item/item.controller';
 import ItemService from './item/item.service';
-import { Item, ItemStatus } from './item/item';
+import { Item } from './item/item';
 import { Model, ModelObject } from './lib/model.helper';
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
@@ -11,9 +11,15 @@ var server = restify.createServer();
 server.use(restify.bodyParser({ mapParams: false }));
 server.use(restify.CORS());
 
+
+
+// We could find a way to load each module in a generic way, with dependency...
+
+
 let itemModel = new ModelObject<Item>("/../data/items.json");
 let itemService = new ItemService(itemModel);
 let itemController = new ItemController(itemService);
+server.get('/item/definitions', itemController.definitions.bind(itemController));
 server.get('/item/:id/status', itemController.status.bind(itemController));
 server.get('/item/:id/:status', itemController.setStatus.bind(itemController));
 server.get('/items', itemController.all.bind(itemController));
@@ -43,6 +49,7 @@ import { Action } from './action/action';
 let actionModel = new ModelObject<Action[]>("/../data/actions.json");
 let actionService = new ActionService(actionModel, itemService, timerService);
 let actionController = new ActionController(actionService);
+server.get('/action/definitions', actionController.definitions.bind(actionController));
 server.get('/action/:name', actionController.call.bind(actionController));
 
 

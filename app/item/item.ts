@@ -10,12 +10,19 @@ export class ItemAvailableStatus {
     value: string;
 }
 
-export class Item {
+export class ItemBase {
   name: string;
+  type: string = 'string';
+}
+
+export class ItemDefinition extends ItemBase {
+  availableStatus: string[];
+}
+
+export class Item extends ItemBase {
   status: string;
   value: number;
   statusUrl: string;
-  type: string;
   url: string;
   availableStatus: { [name: string]: ItemAvailableStatus };
 }
