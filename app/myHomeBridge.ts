@@ -62,6 +62,17 @@ server.post('/alexa', alexaController.call.bind(alexaController));
 //server.post('/alexa/:key', alexaController.callKey.bind(alexaController));
 
 
+
+
+import DashboardController from './dashboard/dashboard.controller';
+import DashboardService  from './dashboard/dashboard.service';
+import { DashboardCategory } from './dashboard/dashboard';
+let dashboardModel = new Model<DashboardCategory[]>("/../data/dashboard.json");
+let dashboardService = new DashboardService(dashboardModel, itemService, actionService);
+let dashboardController = new DashboardController(dashboardService);
+server.get('/dashboard/list', dashboardController.list.bind(dashboardController));
+
+
 server.listen(3030, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
