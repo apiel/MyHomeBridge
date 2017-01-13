@@ -1,7 +1,7 @@
 
 import restify = require('restify');
 import ItemService from './item.service';
-import { Item } from './item';
+import { Item, ItemStatus } from './item';
 
 export default class {
     constructor(private itemService: ItemService) {}
@@ -11,7 +11,7 @@ export default class {
         let id = req.params['id'];
         
         this.itemService.getStatus(id)
-            .then(data => res.json(200, data))
+            .then((itemStatus: ItemStatus) => res.json(200, itemStatus))
             .catch(error => res.json(400, error));
         
         return next();
@@ -47,5 +47,23 @@ export default class {
             res.json(400, {error: e});
         }
         return next();
-    }    
+    }  
+
+    setup(mqttd: any) {
+        try {
+            this.itemService.allObservable().subscribe(
+                itemStatus => {
+                    mqttd.publish({
+                        topic: itemStatus.id,
+                        payload: itemStatus.status,
+                        retain: true,
+                        qos: 0
+                    });
+                }
+            );            
+        }
+        catch(error) {
+            console.log('Error on item setup: ', error);
+        }        
+    }
 }

@@ -27,6 +27,7 @@
     "es6-promise": "^4.0.5",
     "moment": "^2.17.1",
     "moment-interval": "^0.2.1",
+    "mosca": "^2.2.0",
     "request": "^2.75.0",
     "request-promise": "^4.1.1",
     "restify": "^4.1.1",

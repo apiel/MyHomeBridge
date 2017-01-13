@@ -1,28 +1,59 @@
-
 import restify = require('restify');
+import Events = require('events');
 import ItemController from './item/item.controller';
 import ItemService from './item/item.service';
-import { Item } from './item/item';
+import { Item, ItemStatus } from './item/item';
 import { Model, ModelObject } from './lib/model.helper';
 
+var mosca = require('mosca');
+
+const eventEmitter = new Events.EventEmitter();
+
+// Restify setup
 restify.CORS.ALLOW_HEADERS.push('authorization');
+var httpd = restify.createServer();
+httpd.use(restify.bodyParser({ mapParams: false }));
+httpd.use(restify.CORS());
 
-var server = restify.createServer();
-server.use(restify.bodyParser({ mapParams: false }));
-server.use(restify.CORS());
+// Mosca setup
 
-
+var mqttd = new mosca.Server({
+  port: 1883,
+  persistence: {
+    factory: mosca.persistence.Memory
+  }
+});
+eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => {
+   //console.log('eventEmitter: set/item/status', itemStatus);
+    mqttd.publish({
+        topic: itemStatus.id, // in front we should put /item/
+        payload: itemStatus.status,
+        retain: true,
+        qos: 0
+    });   
+});
 
 // We could find a way to load each module in a generic way, with dependency...
 
 
 let itemModel = new ModelObject<Item>("/../data/items.json");
-let itemService = new ItemService(itemModel);
+let itemService = new ItemService(itemModel, eventEmitter);
 let itemController = new ItemController(itemService);
-server.get('/item/definitions', itemController.definitions.bind(itemController));
-server.get('/item/:id/status', itemController.status.bind(itemController));
-server.get('/item/:id/:status', itemController.setStatus.bind(itemController));
-server.get('/items', itemController.all.bind(itemController));
+httpd.get('/item/definitions', itemController.definitions.bind(itemController));
+httpd.get('/item/:id/status', itemController.status.bind(itemController));
+httpd.get('/item/:id/:status', itemController.setStatus.bind(itemController));
+httpd.get('/items', itemController.all.bind(itemController));
+
+mqttd.on('ready', itemController.setup.bind(itemController, mqttd));
+mqttd.on('published', (packet: any, client: any) => { // this should go in controller
+  console.log('Published : ', packet.payload.toString());
+  console.log(packet);
+  console.log(client);
+  // if (packet.topic.indexOf('/item/') === 0)
+  if (client)
+    itemService.setStatus(packet.topic, packet.payload.toString());
+});
+
 
 
 
@@ -32,7 +63,7 @@ import { Trigger } from './trigger/trigger';
 let triggerModel = new ModelObject<Trigger>("/../data/triggers.json");
 let triggerService = new TriggerService(triggerModel);
 let triggerController = new TriggerController(triggerService);
-server.post('/trigger/push', triggerController.push.bind(triggerController));
+httpd.post('/trigger/push', triggerController.push.bind(triggerController));
 
 
 
@@ -49,8 +80,8 @@ import { Action } from './action/action';
 let actionModel = new ModelObject<Action[]>("/../data/actions.json");
 let actionService = new ActionService(actionModel, itemService, timerService);
 let actionController = new ActionController(actionService);
-server.get('/action/definitions', actionController.definitions.bind(actionController));
-server.get('/action/:name', actionController.call.bind(actionController));
+httpd.get('/action/definitions', actionController.definitions.bind(actionController));
+httpd.get('/action/:name', actionController.call.bind(actionController));
 
 
 import AlexaController from './alexa/alexa.controller';
@@ -58,8 +89,8 @@ import AlexaService  from './alexa/alexa.service';
 let alexaModel = new ModelObject<Action>("/../data/alexa.json");
 let alexaService = new AlexaService(alexaModel, actionService);
 let alexaController = new AlexaController(alexaService);
-server.post('/alexa', alexaController.call.bind(alexaController));
-//server.post('/alexa/:key', alexaController.callKey.bind(alexaController));
+httpd.post('/alexa', alexaController.call.bind(alexaController));
+//httpd.post('/alexa/:key', alexaController.callKey.bind(alexaController));
 
 
 
@@ -70,9 +101,9 @@ import { DashboardCategory } from './dashboard/dashboard';
 let dashboardModel = new Model<DashboardCategory[]>("/../data/dashboard.json");
 let dashboardService = new DashboardService(dashboardModel, itemService, actionService);
 let dashboardController = new DashboardController(dashboardService);
-server.get('/dashboard/list', dashboardController.list.bind(dashboardController));
+httpd.get('/dashboard/list', dashboardController.list.bind(dashboardController));
 
 
-server.listen(3030, function() {
-  console.log('%s listening at %s', server.name, server.url);
+httpd.listen(3030, function() {
+  console.log('%s listening at %s', httpd.name, httpd.url);
 });

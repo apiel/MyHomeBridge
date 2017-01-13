@@ -7,9 +7,11 @@ import * as request from 'request-promise';
 var exec = require('child-process-promise').exec;
 import { ModelObject } from './../lib/model.helper';
 import { Item, ItemAvailableStatus, ItemStatus, ItemDefinition, ItemBase } from './item';
+import { Observable, Observer } from 'rx';
+import Events = require('events');
 
 export default class {
-    constructor(private itemModel: ModelObject<Item>) {}
+    constructor(private itemModel: ModelObject<Item>, private eventEmitter: Events.EventEmitter) {}
         
     toggle(availableStatus: string[], status: string): string {
         for(let val of availableStatus) {
@@ -39,8 +41,10 @@ export default class {
             this.setStatusOfTypeString(item, status);
         }
         this.itemModel.save();
-        this.setStatusAction(item);    
-        return {id: id, status: item.status};
+        this.setStatusAction(item);   
+        let itemStatus: ItemStatus = {id: id, status: item.status};
+        this.eventEmitter.emit('set/item/status', itemStatus); 
+        return itemStatus;
     }  
     
     execQueue: string[] = [];
@@ -128,6 +132,32 @@ export default class {
             
         return <ItemStatus> {id: id, status: data.status};
     }
+
+    allObservable(): Observable<any> {
+        return Observable.create(observer => 
+            this.allObserver(observer));        
+    }
+    
+    allObserver(observer: Observer<any>) {
+        let items: Item[] = this.itemModel.get();
+        let itemsKeys = Object.keys(items);
+        let waitingForStatus = itemsKeys.length;
+        let checkIsCompleted = () => {
+            waitingForStatus--;
+            if (waitingForStatus < 1) {
+                observer.onCompleted();
+            }            
+        };
+
+        for(let key of itemsKeys) {
+            this.getStatus(key).then(status => {
+                observer.onNext(status);
+                checkIsCompleted();
+            }).catch(error => {
+                checkIsCompleted();
+            });
+        }
+    }    
     
     definitions() {
         let items: Item[] = this.itemModel.get();
