@@ -26,7 +26,7 @@ var mqttd = new mosca.Server({
 eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => {
    //console.log('eventEmitter: set/item/status', itemStatus);
     mqttd.publish({
-        topic: itemStatus.id, // in front we should put /item/
+        topic: '/item/' + itemStatus.id,
         payload: itemStatus.status,
         retain: true,
         qos: 0
@@ -45,15 +45,6 @@ httpd.get('/item/:id/:status', itemController.setStatus.bind(itemController));
 httpd.get('/items', itemController.all.bind(itemController));
 
 mqttd.on('ready', itemController.setup.bind(itemController, mqttd));
-mqttd.on('published', (packet: any, client: any) => { // this should go in controller
-  console.log('Published : ', packet.payload.toString());
-  console.log(packet);
-  console.log(client);
-  // if (packet.topic.indexOf('/item/') === 0)
-  if (client)
-    itemService.setStatus(packet.topic, packet.payload.toString());
-});
-
 
 
 
@@ -82,6 +73,17 @@ let actionService = new ActionService(actionModel, itemService, timerService);
 let actionController = new ActionController(actionService);
 httpd.get('/action/definitions', actionController.definitions.bind(actionController));
 httpd.get('/action/:name', actionController.call.bind(actionController));
+
+
+mqttd.on('published', (packet: any, client: any) => { // this should go in controller
+  if (client) {
+    if (packet.topic.indexOf('/item/') === 0)
+      itemService.setStatus(packet.topic, packet.payload.toString());
+    if (packet.topic.indexOf('/action/') === 0)
+      this.actionService.call(packet.topic);
+  }
+});
+
 
 
 import AlexaController from './alexa/alexa.controller';
