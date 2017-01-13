@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/myHomeBridge.js",
   "scripts": {
-    "build": "tsc; babel dist-ts --out-dir dist",
-    "start": "npm run build; node dist/myHomeBridge.js"
+    "build": "tsc && babel dist-ts --out-dir dist",
+    "start": "npm run build && node dist/myHomeBridge.js"
   },
   "repository": {
     "type": "git",

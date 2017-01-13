@@ -26,7 +26,7 @@ var mqttd = new mosca.Server({
 eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => {
    //console.log('eventEmitter: set/item/status', itemStatus);
     mqttd.publish({
-        topic: '/item/' + itemStatus.id,
+        topic: 'item/' + itemStatus.id,
         payload: itemStatus.status,
         retain: true,
         qos: 0
@@ -74,13 +74,16 @@ let actionController = new ActionController(actionService);
 httpd.get('/action/definitions', actionController.definitions.bind(actionController));
 httpd.get('/action/:name', actionController.call.bind(actionController));
 
-
+// we need to change 
+// httpd.get('/item/:id/status',   to   /item/status?id=:id
+// httpd.get('/item/:id/:status',  to   /item?id=:id&status=:status
+// since :id can contain a /
 mqttd.on('published', (packet: any, client: any) => { // this should go in controller
   if (client) {
-    if (packet.topic.indexOf('/item/') === 0)
-      itemService.setStatus(packet.topic, packet.payload.toString());
-    if (packet.topic.indexOf('/action/') === 0)
-      this.actionService.call(packet.topic);
+    if (packet.topic.indexOf('item/') === 0)
+      itemService.setStatus(packet.topic.substring(5), packet.payload.toString());
+    if (packet.topic.indexOf('action/') === 0)
+      this.actionService.call(packet.substring(6).topic);
   }
 });
 
