@@ -33,7 +33,7 @@ export default class {
     // we should handle error by request if one or the service is not running
     all(req: restify.Request, res: restify.Response, next: restify.Next) {
         console.log('Controller item all');
-        this.itemService.all()
+        this.itemService.allStatus()
                         .then(data => res.json(200, data))
                         .catch(error => res.json(400, error));
         return next();
@@ -51,16 +51,25 @@ export default class {
 
     setup(mqttd: any) {
         try {
-            this.itemService.allObservable().subscribe(
-                itemStatus => {
+            this.itemService.mapStatus(itemStatus => {
+                    console.log(itemStatus);
                     mqttd.publish({
                         topic: itemStatus.id,
                         payload: itemStatus.status,
                         retain: true,
                         qos: 0
                     });
-                }
-            );            
+                }); 
+            // this.itemService.allObservable().subscribe(
+            //     itemStatus => {
+            //         mqttd.publish({
+            //             topic: itemStatus.id,
+            //             payload: itemStatus.status,
+            //             retain: true,
+            //             qos: 0
+            //         });
+            //     }
+            // );            
         }
         catch(error) {
             console.log('Error on item setup: ', error);

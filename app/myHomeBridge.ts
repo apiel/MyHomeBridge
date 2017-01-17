@@ -13,6 +13,7 @@ const eventEmitter = new Events.EventEmitter();
 restify.CORS.ALLOW_HEADERS.push('authorization');
 var httpd = restify.createServer();
 httpd.use(restify.bodyParser({ mapParams: false }));
+httpd.use(restify.queryParser()); // take care that it doesnt conflict with Alexa
 httpd.use(restify.CORS());
 
 // Mosca setup
@@ -23,6 +24,8 @@ var mqttd = new mosca.Server({
     factory: mosca.persistence.Memory
   }
 });
+
+// this should go in controller?
 eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => {
    //console.log('eventEmitter: set/item/status', itemStatus);
     mqttd.publish({
@@ -40,8 +43,11 @@ let itemModel = new ModelObject<Item>("/../data/items.json");
 let itemService = new ItemService(itemModel, eventEmitter);
 let itemController = new ItemController(itemService);
 httpd.get('/item/definitions', itemController.definitions.bind(itemController));
-httpd.get('/item/:id/status', itemController.status.bind(itemController));
-httpd.get('/item/:id/:status', itemController.setStatus.bind(itemController));
+httpd.get('/item/status', itemController.status.bind(itemController));
+// we could had skip action param for rcswitch
+httpd.get('/item', itemController.setStatus.bind(itemController));
+//httpd.get('/item/:id/status', itemController.status.bind(itemController));
+//httpd.get('/item/:id/:status', itemController.setStatus.bind(itemController));
 httpd.get('/items', itemController.all.bind(itemController));
 
 mqttd.on('ready', itemController.setup.bind(itemController, mqttd));
@@ -74,11 +80,8 @@ let actionController = new ActionController(actionService);
 httpd.get('/action/definitions', actionController.definitions.bind(actionController));
 httpd.get('/action/:name', actionController.call.bind(actionController));
 
-// we need to change 
-// httpd.get('/item/:id/status',   to   /item/status?id=:id
-// httpd.get('/item/:id/:status',  to   /item?id=:id&status=:status
-// since :id can contain a /
-mqttd.on('published', (packet: any, client: any) => { // this should go in controller
+// this should go in controller
+mqttd.on('published', (packet: any, client: any) => { 
   if (client) {
     if (packet.topic.indexOf('item/') === 0)
       itemService.setStatus(packet.topic.substring(5), packet.payload.toString());

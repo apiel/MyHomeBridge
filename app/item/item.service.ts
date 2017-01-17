@@ -7,7 +7,7 @@ import * as request from 'request-promise';
 var exec = require('child-process-promise').exec;
 import { ModelObject } from './../lib/model.helper';
 import { Item, ItemAvailableStatus, ItemStatus, ItemDefinition, ItemBase } from './item';
-import { Observable, Observer } from 'rx';
+// import { Observable, Observer } from 'rx';
 import Events = require('events');
 
 export default class {
@@ -99,12 +99,24 @@ export default class {
         }   
     }
     
-    all() {
+    getAllPromiseStatus() {
         let items: Item[] = this.itemModel.get();
         let itemsKeys = Object.keys(items);
-        return Promise.all(itemsKeys.map(key => this.getStatus(key)));
+        return itemsKeys.map(key => this.getStatus(key));
+    }
+
+    allStatus() {
+        return Promise.all(this.getAllPromiseStatus());
+    }
+
+    mapStatus(callback: (value: ItemStatus) => any) {
+        const allPromiseStatus = this.getAllPromiseStatus();
+        allPromiseStatus.map(promiseStatus => {
+            promiseStatus.then(callback);
+        });
     }
     
+    // get status is an url request but it could be as well cmd line or mqtt request (:id => status)
     async getStatus(id: string) {
         let response: ItemStatus;
         let item: Item = this.itemModel.getById(id); 
@@ -133,31 +145,31 @@ export default class {
         return <ItemStatus> {id: id, status: data.status};
     }
 
-    allObservable(): Observable<any> {
-        return Observable.create(observer => 
-            this.allObserver(observer));        
-    }
+    // allObservable(): Observable<any> {
+    //     return Observable.create(observer => 
+    //         this.allObserver(observer));        
+    // }
     
-    allObserver(observer: Observer<any>) {
-        let items: Item[] = this.itemModel.get();
-        let itemsKeys = Object.keys(items);
-        let waitingForStatus = itemsKeys.length;
-        let checkIsCompleted = () => {
-            waitingForStatus--;
-            if (waitingForStatus < 1) {
-                observer.onCompleted();
-            }            
-        };
+    // allObserver(observer: Observer<any>) {
+    //     let items: Item[] = this.itemModel.get();
+    //     let itemsKeys = Object.keys(items);
+    //     let waitingForStatus = itemsKeys.length;
+    //     let checkIsCompleted = () => {
+    //         waitingForStatus--;
+    //         if (waitingForStatus < 1) {
+    //             observer.onCompleted();
+    //         }            
+    //     };
 
-        for(let key of itemsKeys) {
-            this.getStatus(key).then(status => {
-                observer.onNext(status);
-                checkIsCompleted();
-            }).catch(error => {
-                checkIsCompleted();
-            });
-        }
-    }    
+    //     for(let key of itemsKeys) {
+    //         this.getStatus(key).then(status => {
+    //             observer.onNext(status);
+    //             checkIsCompleted();
+    //         }).catch(error => {
+    //             checkIsCompleted();
+    //         });
+    //     }
+    // }    
     
     definitions() {
         let items: Item[] = this.itemModel.get();
