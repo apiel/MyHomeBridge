@@ -46,6 +46,10 @@ export default class {
         this.eventEmitter.emit('set/item/status', itemStatus); 
         return itemStatus;
     }  
+
+    async setStatusAsync(id: string, status: string) { 
+        return this.setStatus(id, status);
+    }
     
     execQueue: string[] = [];
     async consumeExecQueue(command: string) {
@@ -171,7 +175,7 @@ export default class {
     //     }
     // }    
     
-    definitions() {
+    async definitions() {
         let items: Item[] = this.itemModel.get();
         let defintions: ItemDefinition[] = [];
         for (let key in items) {

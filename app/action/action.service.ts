@@ -8,7 +8,7 @@ export default class {
                 private itemService: ItemService,
                 private timerService: TimerService) {}
     
-    call(name: string, timer: number = 0) {
+    async call(name: string, timer: number = 0) {
         let actions: Action[] = this.actionModel.getById(name);
         return actions.map(action => this.execute(action, timer));
     }
@@ -27,7 +27,7 @@ export default class {
         }        
     }
     
-    definitions() {
+    async definitions() {
         return Object.keys(this.actionModel.get());
     }
 }

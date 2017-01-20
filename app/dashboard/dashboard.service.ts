@@ -7,7 +7,7 @@ export default class {
     constructor(private dashboardModel: Model<DashboardCategory[]>, private itemService: ItemService, 
                 private actionService: ActionService) {}
     
-    list() {
+    async list() {
         for(let category of this.dashboardModel.get()) {
             console.log(category.name);
         }

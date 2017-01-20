@@ -1,20 +1,67 @@
-import restify = require('restify');
 import Events = require('events');
-import ItemController from './item/item.controller';
 import ItemService from './item/item.service';
 import { Item, ItemStatus } from './item/item';
 import { Model, ModelObject } from './lib/model.helper';
+import Httpd from './lib/httpd.service';
 
 var mosca = require('mosca');
 
 const eventEmitter = new Events.EventEmitter();
 
-// Restify setup
-restify.CORS.ALLOW_HEADERS.push('authorization');
-var httpd = restify.createServer();
-httpd.use(restify.bodyParser({ mapParams: false }));
-httpd.use(restify.queryParser()); // take care that it doesnt conflict with Alexa
-httpd.use(restify.CORS());
+let httpd = new Httpd();
+
+// We could find a way to load each module in a generic way, with dependency...
+
+
+let itemModel = new ModelObject<Item>("/../data/items.json");
+let itemService = new ItemService(itemModel, eventEmitter);
+httpd.get('/item/definitions', [], itemService.definitions.bind(itemService));
+httpd.get('/item/status', ['id'], itemService.getStatus.bind(itemService));
+httpd.get('/item', ['id', 'status'], itemService.setStatusAsync.bind(itemService));
+httpd.get('/items', ['id', 'status'], itemService.allStatus.bind(itemService));
+
+
+import TriggerService  from './trigger/trigger.service';
+import { Trigger } from './trigger/trigger';
+let triggerModel = new ModelObject<Trigger>("/../data/triggers.json");
+let triggerService = new TriggerService(triggerModel);
+
+
+import { Timer } from './timer/timer';
+import TimerService from './timer/timer.service';
+let timerModel = new Model<Timer[]>("/../data/timers.json");
+let timerService = new TimerService(timerModel, itemService);
+timerService.init();
+
+
+import ActionService  from './action/action.service';
+import { Action } from './action/action';
+let actionModel = new ModelObject<Action[]>("/../data/actions.json");
+let actionService = new ActionService(actionModel, itemService, timerService);
+httpd.get('/action/definitions', [], actionService.definitions.bind(actionService));
+httpd.get('/action/:name', ['name'], actionService.call.bind(actionService)); // we should change it as item
+
+
+
+
+import AlexaService  from './alexa/alexa.service';
+let alexaModel = new ModelObject<Action>("/../data/alexa.json");
+let alexaService = new AlexaService(alexaModel, actionService);
+httpd.post('/alexa', alexaService.call.bind(alexaService));
+
+
+
+
+
+import DashboardService  from './dashboard/dashboard.service';
+import { DashboardCategory } from './dashboard/dashboard';
+let dashboardModel = new Model<DashboardCategory[]>("/../data/dashboard.json");
+let dashboardService = new DashboardService(dashboardModel, itemService, actionService);
+httpd.get('/dashboard/list', [], dashboardService.list.bind(dashboardService));
+
+
+httpd.serve();
+
 
 // Mosca setup
 
@@ -23,6 +70,34 @@ var mqttd = new mosca.Server({
   persistence: {
     factory: mosca.persistence.Memory
   }
+});
+
+
+mqttd.on('ready', () => {
+    try {
+        itemService.mapStatus(itemStatus => {
+                console.log(itemStatus);
+                mqttd.publish({
+                    topic: itemStatus.id,
+                    payload: itemStatus.status,
+                    retain: true,
+                    qos: 0
+                });
+            }); 
+        // this.itemService.allObservable().subscribe(
+        //     itemStatus => {
+        //         mqttd.publish({
+        //             topic: itemStatus.id,
+        //             payload: itemStatus.status,
+        //             retain: true,
+        //             qos: 0
+        //         });
+        //     }
+        // );            
+    }
+    catch(error) {
+        console.log('Error on item setup: ', error);
+    }        
 });
 
 // this should go in controller?
@@ -35,54 +110,14 @@ eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => {
         qos: 0
     });   
 });
-
-// We could find a way to load each module in a generic way, with dependency...
-
-
-let itemModel = new ModelObject<Item>("/../data/items.json");
-let itemService = new ItemService(itemModel, eventEmitter);
-let itemController = new ItemController(itemService);
-httpd.get('/item/definitions', itemController.definitions.bind(itemController));
-httpd.get('/item/status', itemController.status.bind(itemController));
-// we could had skip action param for rcswitch
-httpd.get('/item', itemController.setStatus.bind(itemController));
-//httpd.get('/item/:id/status', itemController.status.bind(itemController));
-//httpd.get('/item/:id/:status', itemController.setStatus.bind(itemController));
-httpd.get('/items', itemController.all.bind(itemController));
-
-mqttd.on('ready', itemController.setup.bind(itemController, mqttd));
+// eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => mqtt.publish('item/' + itemStatus.id, itemStatus.status);
 
 
-
-import TriggerController from './trigger/trigger.controller';
-import TriggerService  from './trigger/trigger.service';
-import { Trigger } from './trigger/trigger';
-let triggerModel = new ModelObject<Trigger>("/../data/triggers.json");
-let triggerService = new TriggerService(triggerModel);
-let triggerController = new TriggerController(triggerService);
-httpd.post('/trigger/push', triggerController.push.bind(triggerController));
-
-
-
-import { Timer } from './timer/timer';
-import TimerService from './timer/timer.service';
-let timerModel = new Model<Timer[]>("/../data/timers.json");
-let timerService = new TimerService(timerModel, itemService);
-timerService.init();
-
-
-import ActionController from './action/action.controller';
-import ActionService  from './action/action.service';
-import { Action } from './action/action';
-let actionModel = new ModelObject<Action[]>("/../data/actions.json");
-let actionService = new ActionService(actionModel, itemService, timerService);
-let actionController = new ActionController(actionService);
-httpd.get('/action/definitions', actionController.definitions.bind(actionController));
-httpd.get('/action/:name', actionController.call.bind(actionController));
 
 // this should go in controller
 mqttd.on('published', (packet: any, client: any) => { 
-  if (client) {
+  // Here we should force retain
+  if (client && client.id !== 'myhomebridge-server') {
     if (packet.topic.indexOf('item/') === 0)
       itemService.setStatus(packet.topic.substring(5), packet.payload.toString());
     if (packet.topic.indexOf('action/') === 0)
@@ -90,28 +125,3 @@ mqttd.on('published', (packet: any, client: any) => {
   }
 });
 
-
-
-import AlexaController from './alexa/alexa.controller';
-import AlexaService  from './alexa/alexa.service';
-let alexaModel = new ModelObject<Action>("/../data/alexa.json");
-let alexaService = new AlexaService(alexaModel, actionService);
-let alexaController = new AlexaController(alexaService);
-httpd.post('/alexa', alexaController.call.bind(alexaController));
-//httpd.post('/alexa/:key', alexaController.callKey.bind(alexaController));
-
-
-
-
-import DashboardController from './dashboard/dashboard.controller';
-import DashboardService  from './dashboard/dashboard.service';
-import { DashboardCategory } from './dashboard/dashboard';
-let dashboardModel = new Model<DashboardCategory[]>("/../data/dashboard.json");
-let dashboardService = new DashboardService(dashboardModel, itemService, actionService);
-let dashboardController = new DashboardController(dashboardService);
-httpd.get('/dashboard/list', dashboardController.list.bind(dashboardController));
-
-
-httpd.listen(3030, function() {
-  console.log('%s listening at %s', httpd.name, httpd.url);
-});
