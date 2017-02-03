@@ -59,6 +59,7 @@ httpd.get('/dashboard/list', [], dashboardService.list.bind(dashboardService));
 httpd.serve();
 
 let mqttd = new Mqttd();
+mqttd.attachHttpServer(httpd.httpd);
 let mqttdItem = new MqttdRoute(mqttd, 'item');
 let mqttdAction = new MqttdRoute(mqttd, 'action');
 
@@ -75,6 +76,7 @@ mqttd.ready(() => {
 });
 
 mqttdItem.onPublished((packet: any, client: any) => itemService.setStatus(packet.topic, packet.payload.toString()));
+// The value should be the timer
 mqttdAction.onPublished((packet: any, client: any) => this.actionService.call(packet.topic));
 eventEmitter.on('set/item/status', (itemStatus: ItemStatus) => mqttdItem.publish(itemStatus.id, itemStatus.status.toString()));
 

@@ -14,7 +14,7 @@ export default class {
     serve(port: number = 3030) {
         this.httpd.listen(port, () => {
             console.log('%s listening at %s', this.httpd.name, this.httpd.url);
-        });        
+        });     
     }
 
     get(route: any, parametersRules: string[], callbackFunction: Function) {

@@ -36,6 +36,10 @@ export class Mqttd {
         });
     }
 
+    attachHttpServer(httpServer: any) {
+        this.mqttd.attachHttpServer(httpServer);
+    }
+
     publish(topic: string, payload: string, retain: boolean = true, qos: number = 0) {
         this.mqttd.publish({
             topic: topic,

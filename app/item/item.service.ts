@@ -10,6 +10,9 @@ import { Item, ItemAvailableStatus, ItemStatus, ItemDefinition, ItemBase } from 
 // import { Observable, Observer } from 'rx';
 import Events = require('events');
 
+// We could save the status inside another file
+// When we use statusUrl we should regulary check for mqtt ?? in case of change...
+
 export default class {
     constructor(private itemModel: ModelObject<Item>, private eventEmitter: Events.EventEmitter) {}
         
