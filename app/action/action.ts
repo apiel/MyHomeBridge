@@ -8,3 +8,13 @@ export class Action {
     actionName?: string;
     timer: number;
 }
+
+export class ActionBase {
+    name: string;
+    actions: Action[];
+}
+
+export class ActionDefinition {
+    name: string;
+    key: string;
+}

@@ -40,7 +40,7 @@ export class Mqttd {
         this.mqttd.attachHttpServer(httpServer);
     }
 
-    publish(topic: string, payload: string, retain: boolean = true, qos: number = 0) {
+    publish(payload: string, topic: string, retain: boolean = true, qos: number = 0) {
         this.mqttd.publish({
             topic: topic,
             payload: payload,
@@ -66,14 +66,16 @@ export class Mqttd {
     }
 }
 
+// Need to review for /item/definitions...
+
 export class MqttdRoute { // not sure that's the bestName
     constructor(private mqttd: Mqttd, private baseTopicLevel: string) {
         this.baseTopicLevel = this.baseTopicLevel + this.mqttd.separator;
     }
 
-    publish(topic: string, payload: string, retain: boolean = true, qos: number = 0) {
-        this.mqttd.publish(this.baseTopicLevel + topic,
-                            payload, retain, qos);
+    publish(payload: string, topic: string = '', retain: boolean = true, qos: number = 0) {
+        this.mqttd.publish(payload, this.baseTopicLevel + topic,
+                           retain, qos);
         return this;
     }
 

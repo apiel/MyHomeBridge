@@ -1,15 +1,15 @@
 import { ModelObject } from './../lib/model.helper';
-import { Action } from './action';
+import { ActionBase, Action, ActionDefinition } from './action';
 import ItemService from './../item/item.service';
 import TimerService from './../timer/timer.service';
 
 export default class {
-    constructor(private actionModel: ModelObject<Action[]>, 
+    constructor(private actionModel: ModelObject<ActionBase>, 
                 private itemService: ItemService,
                 private timerService: TimerService) {}
     
     async call(name: string, timer: number = 0) {
-        let actions: Action[] = this.actionModel.getById(name);
+        let actions: Action[] = this.actionModel.getById(name).actions;
         return actions.map(action => this.execute(action, timer));
     }
     
@@ -28,6 +28,11 @@ export default class {
     }
     
     async definitions() {
-        return Object.keys(this.actionModel.get());
+        let actionsDef: ActionDefinition[] = [];
+        const actions: ActionBase[] = this.actionModel.get();
+        for (let key in actions) {
+            actionsDef.push({ name: actions[key].name, key: key });
+        }
+        return actionsDef;
     }
 }
