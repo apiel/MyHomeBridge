@@ -27,11 +27,11 @@ export default class {
         }        
     }
     
-    async definitions() {
+    async definitions(keyPrefix: string = '') {
         let actionsDef: ActionDefinition[] = [];
         const actions: ActionBase[] = this.actionModel.get();
         for (let key in actions) {
-            actionsDef.push({ name: actions[key].name, key: key });
+            actionsDef.push({ name: actions[key].name, key: keyPrefix + key });
         }
         return actionsDef;
     }

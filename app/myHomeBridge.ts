@@ -16,9 +16,6 @@ import { ActionBase, Action } from './action/action';
 
 import AlexaService  from './alexa/alexa.service';
 
-import DashboardService  from './dashboard/dashboard.service';
-import { DashboardCategory } from './dashboard/dashboard';
-
 const eventEmitter = new Events.EventEmitter();
 
 let httpd = new Httpd();
@@ -52,10 +49,6 @@ let alexaModel = new ModelObject<Action>("/../data/alexa.json");
 let alexaService = new AlexaService(alexaModel, actionService);
 httpd.post('/alexa', alexaService.call.bind(alexaService));
 
-let dashboardModel = new Model<DashboardCategory[]>("/../data/dashboard.json");
-let dashboardService = new DashboardService(dashboardModel, itemService, actionService);
-httpd.get('/dashboard/list', [], dashboardService.list.bind(dashboardService));
-
 httpd.serve();
 
 let mqttd = new Mqttd();
@@ -72,6 +65,9 @@ mqttd.ready(async () => {
             });  
         const itemsDefinitions = await itemService.definitions('item/');
         mqttd.publish(JSON.stringify(itemsDefinitions), 'items/definitions');
+        const actionsDefinitions = await actionService.definitions('action/');
+        mqttd.publish(JSON.stringify(actionsDefinitions), 'actions/definitions');
+        mqttd.publish(JSON.stringify(actionsDefinitions.concat(itemsDefinitions)), 'definitions');
     }
     catch(error) {
         console.log('Error on item setup: ', error);
