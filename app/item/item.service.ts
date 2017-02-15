@@ -65,6 +65,7 @@ export default class {
         }     
     }
     
+    // instead to call this function directly in setStatus function, it could subscribe to the set/item/status event
     setStatusAction(item: Item) {
         if (item.url) {
             request(item.url.replace(':value', item.status));            
